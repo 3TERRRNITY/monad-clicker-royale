@@ -1,4 +1,3 @@
-// contracts/contracts/Clicker.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
@@ -24,6 +23,7 @@ contract Clicker is ERC721 {
     constructor() ERC721("ClickerNFT", "CLKRNFT") {}
 
     function claimClicks(uint256 clickCount) external {
+        require(clickCount > 0, "InvalidClickCount"); // Проверка на нулевые клики
         Player storage player = players[msg.sender];
         player.totalClicks += clickCount;
 
@@ -35,12 +35,16 @@ contract Clicker is ERC721 {
         Player memory player = players[user];
         uint256 total = player.totalClicks;
 
-        if (total / COMMON_TRIGGER > (total - newClicks) / COMMON_TRIGGER) {
+        // Common NFT: каждые 100 кликов
+        uint256 newCommonRewards = (total / COMMON_TRIGGER) - ((total - newClicks) / COMMON_TRIGGER);
+        for (uint256 i = 0; i < newCommonRewards; i++) {
             _mintNFT(user, "Common");
         }
 
-        if (total / LEGENDARY_TRIGGER > (total - newClicks) / LEGENDARY_TRIGGER) {
-            if (uint256(keccak256(abi.encodePacked(block.prevrandao, user))) % 100 < LEGENDARY_CHANCE) {
+        // Legendary NFT: каждые 1000 кликов с шансом 10%
+        uint256 newLegendaryRewards = (total / LEGENDARY_TRIGGER) - ((total - newClicks) / LEGENDARY_TRIGGER);
+        for (uint256 i = 0; i < newLegendaryRewards; i++) {
+            if (uint256(keccak256(abi.encodePacked(block.prevrandao, user, i))) % 100 < LEGENDARY_CHANCE) {
                 _mintNFT(user, "Legendary");
             }
         }

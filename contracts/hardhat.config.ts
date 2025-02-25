@@ -16,6 +16,7 @@ const config: HardhatUserConfig = {
     monad_testnet: {
       url: process.env.RPC_URL!,
       accounts: [process.env.PRIVATE_KEY!],
+      chainId: 10143,
     },
   },
   typechain: {
